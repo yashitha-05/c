@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>C Problems – 16 Days</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#111827;
+  --header:#1e3c72;
+  --accent:#22c55e;
+}
+
+body.dark{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --text:#e5e7eb;
+  --header:#020617;
+}
+
+body{
+  margin:0;
+  font-family:Segoe UI,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+header{
+  padding:12px 20px;
+  background:var(--header);
+  color:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header .actions button{
+  margin-left:8px;
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.container{
+  max-width:1000px;
+  margin:20px auto;
+  padding:0 20px;
+}
+
+.day{
+  background:var(--card);
+  padding:16px;
+  margin-bottom:14px;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+  position:relative;
+}
+
+.day.completed{
+  border:2px solid var(--accent);
+}
+
+.complete-btn{
+  margin-top:10px;
+  padding:8px 14px;
+  background:var(--accent);
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.badge{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:var(--accent);
+  color:white;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:0.75rem;
+}
+
+ul{padding-left:20px}
+
+/* 🎉 CONFETTI */
+.confetti{
+  position:fixed;
+  width:8px;
+  height:14px;
+  top:-20px;
+  animation:fall 3s linear forwards;
+  z-index:9999;
+}
+@keyframes fall{
+  to{
+    transform:translateY(100vh) rotate(360deg);
+    opacity:0;
+  }
+}
+
+/* 🎈 BALLOONS */
+.balloon{
+  position:fixed;
+  bottom:-100px;
+  width:40px;
+  height:55px;
+  border-radius:50% 50% 45% 45%;
+  animation:floatUp 6s ease-in forwards;
+  z-index:9998;
+}
+.balloon::after{
+  content:'';
+  position:absolute;
+  bottom:-25px;
+  left:50%;
+  width:2px;
+  height:25px;
+  background:#555;
+}
+
+@keyframes floatUp{
+  to{
+    transform:translateY(-120vh);
+    opacity:0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🧩 C Problems (Day-wise)</h1>
+  <div class="actions">
+    <button onclick="location.href='index.html'">🏠 Home</button>
+    <button onclick="toggleDark()">🌙 Dark</button>
+  </div>
+</header>
+
+<div class="container" id="problemContainer"></div>
+
+<script>
+const problems = [
+["Day 1 – Basics",["Even or Odd","Positive / Negative / Zero","Simple calculator"]],
+["Day 2 – Conditions",["Largest of two numbers","Largest of three numbers"]],
+["Day 3 – Operators",["Swap (temp)","Swap (no temp)","Power"]],
+["Day 4 – Loops",["Sum of digits","Count digits"]],
+["Day 5 – Number Logic",["Reverse","Palindrome","Prime","Prime range"]],
+["Day 6 – Factorial & Armstrong",["Factorial loop","Factorial recursion","Armstrong"]],
+["Day 7 – Patterns",["Star","Inverted","Number","Pyramid","Floyd"]],
+["Day 8 – Arrays",["Read array","Sum","Average"]],
+["Day 9 – Array Logic",["Largest","Smallest","Second largest","Even/Odd"]],
+["Day 10 – Search & Sort",["Linear search","Binary search","Bubble sort"]],
+["Day 11 – Array Ops",["Reverse","Insert","Delete"]],
+["Day 12 – Strings",["Length","Reverse","Palindrome"]],
+["Day 13 – String Logic",["Vowels","Compare","Copy","Concat"]],
+["Day 14 – Functions",["Add","Prime fn","Palindrome fn"]],
+["Day 15 – Pointers",["Swap","Call by value","Call by ref","Pointer array"]],
+["Day 16 – Revision",["Reverse","Palindrome","Prime","Armstrong","Sort"]]
+];
+
+const completed = JSON.parse(localStorage.getItem("completedProblems")) || {};
+
+function render(){
+  const c=document.getElementById("problemContainer");
+  c.innerHTML="";
+  problems.forEach((p,i)=>{
+    const d=document.createElement("div");
+    d.className="day"+(completed[i]?" completed":"");
+    d.innerHTML=`
+      <h3>${p[0]}</h3>
+      <ul>${p[1].map(x=>`<li>${x}</li>`).join("")}</ul>
+      ${completed[i]?'<div class="badge">Completed 🎉</div>':''}
+      <button class="complete-btn" onclick="celebrate(${i})">
+        🎊 I DID THIS!
+      </button>
+    `;
+    c.appendChild(d);
+  });
+}
+
+function celebrate(i){
+  completed[i]=true;
+  localStorage.setItem("completedProblems",JSON.stringify(completed));
+  launchConfetti();
+  launchBalloons();
+  render();
+}
+
+function launchConfetti(){
+  for(let i=0;i<80;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=`hsl(${Math.random()*360},100%,60%)`;
+    c.style.animationDuration=2+Math.random()*2+"s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+
+function launchBalloons(){
+  for(let i=0;i<12;i++){
+    const b=document.createElement("div");
+    b.className="balloon";
+    b.style.left=Math.random()*100+"vw";
+    b.style.background=`hsl(${Math.random()*360},70%,60%)`;
+    b.style.animationDuration=5+Math.random()*3+"s";
+    document.body.appendChild(b);
+    setTimeout(()=>b.remove(),8000);
+  }
+}
+
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+
+render();
+</script>
+
+</body>
+</html>
