@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>C in 16 Days</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#f8fafc;--card:#fff;--text:#111827;
+  --primary:#2563eb;--accent:#22c55e;
+}
+body.dark{
+  --bg:#0f172a;--card:#1e293b;--text:#e5e7eb;
+}
+body{
+  margin:0;font-family:Segoe UI,sans-serif;
+  background:var(--bg);color:var(--text);
+}
+header{
+  padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:#1e3c72;color:white;
+}
+header h1{font-size:1.1rem;margin:0}
+header button{
+  padding:6px 12px;border:none;border-radius:6px;
+  background:white;color:#1e3c72;cursor:pointer;
+}
+
+.dashboard{
+  max-width:1200px;margin:20px auto;padding:0 20px;
+}
+.progress-bar{
+  background:#cbd5e1;border-radius:10px;height:14px;overflow:hidden;
+}
+.progress-fill{
+  background:var(--accent);height:100%;width:0%;
+  transition:.4s;
+}
+.dashboard p{margin:6px 0;font-weight:600}
+
+.container{max-width:1200px;margin:20px auto;padding:0 20px}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.card{
+  background:var(--card);padding:16px;border-radius:12px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+.card.completed{border:2px solid var(--accent)}
+
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  display:none;justify-content:center;align-items:center;
+}
+.modal-content{
+  background:var(--card);width:95%;max-width:950px;
+  max-height:92vh;border-radius:12px;
+  padding:16px;overflow-y:auto;
+}
+.close{float:right;font-size:1.2rem;cursor:pointer}
+
+.tabs{display:flex;gap:10px;margin-bottom:10px}
+.tabs button{
+  border:none;padding:6px 12px;border-radius:6px;
+  background:#e5e7eb;cursor:pointer;
+}
+.tabs button.active{background:var(--primary);color:white}
+
+pre,textarea{
+  background:#020617;color:#e5e7eb;
+  padding:10px;border-radius:8px;width:100%;
+  font-family:monospace;
+}
+textarea{height:150px}
+
+.quiz-box{
+  border:1px solid #cbd5e1;
+  padding:10px;border-radius:8px;margin-bottom:10px;
+}
+.answer{margin-top:6px;font-weight:600}
+
+.complete-btn{
+  background:var(--accent);color:white;
+  border:none;padding:8px 14px;border-radius:8px;margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>C </h1>
+  <button onclick="toggleDark()">🌙 Dark</button>
+</header>
+
+<!-- PROGRESS DASHBOARD -->
+<div class="dashboard">
+  <p id="progressText">Progress: 0%</p>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="days" id="days"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">✖</span>
+    <h2 id="lessonTitle"></h2>
+
+    <div class="tabs">
+      <button onclick="showTab('learn')" class="active">📘 Learn</button>
+      <button onclick="showTab('notes')">📝 Notes</button>
+      <button onclick="showTab('code')">💻 Code</button>
+      <button onclick="showTab('quiz')">❓ Quiz</button>
+    </div>
+
+    <div id="learn" class="tab"></div>
+    <div id="notes" class="tab" style="display:none"></div>
+    <div id="code" class="tab" style="display:none"></div>
+    <div id="quiz" class="tab" style="display:none"></div>
+
+    <button class="complete-btn" onclick="markCompleted()">✔ Mark Day as Completed</button>
+  </div>
+</div>
+
+<script>
+let currentDay=0;
+const completed=JSON.parse(localStorage.getItem("completedDays"))||{};
+
+const lessons=[
+/* DAY 1 */
+{
+title:"Day 1 – Introduction to C",
+learn:`<h3>What is C?</h3>
+<ul>
+<li>Procedural, compiled language</li>
+<li>Very fast and memory efficient</li>
+<li>Used in OS, embedded systems</li>
+</ul>
+<h3>Program Structure</h3>
+<pre>#include &lt;stdio.h&gt;
+int main(){
+ printf("Hello World");
+ return 0;
+}</pre>
+<h3>Compilation Flow</h3>
+<ul>
+<li>Source → Compiler → Executable</li>
+</ul>`,
+notes:`<ul>
+<li>Execution always starts from main()</li>
+<li>Missing semicolon causes compile error</li>
+<li>stdio.h required for printf</li>
+</ul>
+<ul>
+<li>C is a general-purpose, compiled language</li>
+<li>Every C program starts from <b>main()</b></li>
+<li><b>stdio.h</b> provides input/output functions</li>
+<li>Statements must end with semicolon</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_intro.php" target="_blank">C Introduction</a></li>
+<li><a href="https://www.w3schools.com/c/c_syntax.php" target="_blank">C Syntax</a></li>
+</ul>`,
+code:`#include <stdio.h>
+int main(){
+ printf("Hello World");
+ return 0;
+}`,
+quiz:[
+["C is compiled language","Yes"],
+["Execution starts from main()","Yes"],
+["printf needs stdio.h","Yes"],
+["C is object-oriented","No"],
+["return 0 means success","Yes"],
+["Semicolon ends statement","Yes"],
+["C runs line by line","Yes"],
+["main can be skipped","No"],
+["Header files add features","Yes"],
+["Comments affect output","No"]
+]
+},
+
+/* DAY 2 */
+{
+title:"Day 2 – Variables & Data Types",
+learn:`<ul>
+<li>Variables store data in memory</li>
+<li>int, float, char, double</li>
+<li>sizeof tells memory size</li>
+</ul>
+<pre>int a=10;
+float b=2.5;</pre>`,
+notes:`<ul>
+<li>Uninitialized variables hold garbage</li>
+<li>Use correct format specifiers</li>
+<li>& gives address for scanf</li>
+</ul>
+<ul>
+<li>Variables store values in memory</li>
+<li>Each variable must have a data type</li>
+<li>Use correct format specifiers in scanf/printf</li>
+<li>Uninitialized variables contain garbage values</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_variables.php" target="_blank">C Variables</a></li>
+<li><a href="https://www.w3schools.com/c/c_data_types.php" target="_blank">C Data Types</a></li>
+</ul>`,
+code:`int a,b;
+scanf("%d%d",&a,&b);
+printf("Sum=%d",a+b);`,
+quiz:[
+["Variable stores value","Yes"],
+["int stores decimals","No"],
+["char stores one character","Yes"],
+["scanf needs &","Yes"],
+["float uses %d","No"],
+["sizeof gives size","Yes"],
+["Variables need datatype","Yes"],
+["double larger than float","Yes"],
+["scanf prints output","No"],
+["printf reads input","No"]
+]
+},
+
+/* DAY 3 */
+{
+title:"Day 3 – Operators",
+learn:`<ul>
+<li>Arithmetic: + - * / %</li>
+<li>Relational: &gt; &lt; == !=</li>
+<li>Logical: && || !</li>
+</ul>
+<p>== compares, = assigns</p>`,
+notes:`<ul>
+<li>% works only on integers</li>
+<li>Logical operators combine conditions</li>
+<li>Precedence matters</li>
+</ul>
+<ul>
+<li>Operators perform operations on variables</li>
+<li>Arithmetic operators handle calculations</li>
+<li>Relational operators compare values</li>
+<li>Logical operators combine conditions</li>
+<li><b>==</b> is comparison, <b>=</b> is assignment</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_operators.php" target="_blank">C Operators</a></li>
+</ul>`,
+code:`if(n%2==0) printf("Even");
+else printf("Odd");`,
+quiz:[
+["== compares","Yes"],
+["= assigns","Yes"],
+["% works on float","No"],
+["&& is AND","Yes"],
+["|| is OR","Yes"],
+["! is NOT","Yes"],
+["Operators optional","No"],
+["5/2 gives 2","Yes"],
+["Relational gives boolean","Yes"],
+["Operators build logic","Yes"]
+]
+},
+
+/* DAY 4 */
+{
+title:"Day 4 – Conditional Statements",
+learn:`<ul>
+<li>if, if-else, else-if</li>
+<li>Used for decision making</li>
+<li>Conditions return true/false</li>
+</ul>
+<pre>if(a>b)
+ printf("A bigger");
+else
+ printf("B bigger");</pre>`,
+notes:`<ul>
+<li>Order matters in else-if ladder</li>
+<li>Missing braces causes logic bugs</li>
+<li>Use == not =</li>
+</ul>
+<ul>
+<li>Conditions control decision making</li>
+<li>if executes when condition is true</li>
+<li>else runs when condition is false</li>
+<li>else-if is used for multiple conditions</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_conditions.php" target="_blank">C Conditions</a></li>
+</ul>`,
+code:`if(marks>=40) printf("Pass");
+else printf("Fail");`,
+quiz:[
+["if runs on true","Yes"],
+["else runs when if false","Yes"],
+["else-if checks all","No"],
+["Conditions return 0/1","Yes"],
+["if needs braces always","No"],
+["Nested if allowed","Yes"],
+["Comparison uses ==","Yes"],
+["Assignment uses =","Yes"],
+["Conditions build logic","Yes"],
+["if is optional","No"]
+]
+}
+];
+
+/* Days 5–16 cards (content added next) */
+/* DAY 5 */
+lessons.push({
+title:"Day 5 – Switch Case",
+learn:`<h3>Why switch?</h3>
+<ul>
+<li>Used when one variable has many fixed choices</li>
+<li>Cleaner than multiple else-if</li>
+<li>Works with int and char</li>
+</ul>
+
+<h3>Syntax</h3>
+<pre>switch(choice){
+ case 1: statements; break;
+ case 2: statements; break;
+ default: statements;
+}</pre>
+
+<h3>Important Points</h3>
+<ul>
+<li>break prevents fall-through</li>
+<li>default runs if no case matches</li>
+<li>Cases must be constant values</li>
+</ul>`,
+
+notes:`<ul>
+<li>Always use break unless fall-through is needed</li>
+<li>switch does NOT work with float</li>
+<li>default is optional but recommended</li>
+</ul>
+<ul>
+<li>switch compares one variable with many values</li>
+<li>Each case must end with break</li>
+<li>default runs when no case matches</li>
+<li>Works only with int and char</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_switch.php" target="_blank">C Switch</a></li>
+</ul>`,
+
+code:`int ch;
+scanf("%d",&ch);
+switch(ch){
+ case 1: printf("One"); break;
+ case 2: printf("Two"); break;
+ default: printf("Invalid");
+}`,
+
+quiz:[
+["switch compares one variable","Yes"],
+["switch works with float","No"],
+["break prevents fall-through","Yes"],
+["default is mandatory","No"],
+["case values must be constant","Yes"],
+["switch replaces if-else","Sometimes"],
+["char allowed in switch","Yes"],
+["duplicate cases allowed","No"],
+["switch faster than if","Sometimes"],
+["break exits switch","Yes"]
+]
+});
+
+/* DAY 6 */
+lessons.push({
+title:"Day 6 – for Loop",
+learn:`<h3>What is a loop?</h3>
+<p>A loop repeats a block of code until a condition fails.</p>
+
+<h3>for Loop Syntax</h3>
+<pre>for(initialization; condition; update){
+ statements;
+}</pre>
+
+<h3>Execution Flow</h3>
+<ul>
+<li>Initialization → once</li>
+<li>Condition → every iteration</li>
+<li>Update → after each loop</li>
+</ul>`,
+
+notes:`<ul>
+<li>Use for loop when iterations are known</li>
+<li>Wrong condition causes infinite loop</li>
+<li>Loop variable should be initialized</li>
+</ul>
+<ul>
+<li>for loop is used when iteration count is known</li>
+<li>Initialization runs once</li>
+<li>Condition is checked every iteration</li>
+<li>Update changes loop variable</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_for_loop.php" target="_blank">C for Loop</a></li>
+</ul>`,
+
+code:`for(int i=1;i<=5;i++){
+ printf("%d ",i);
+}`,
+
+quiz:[
+["Loop repeats code","Yes"],
+["for loop runs forever","No"],
+["Initialization runs once","Yes"],
+["Condition checked every time","Yes"],
+["Update changes loop variable","Yes"],
+["for loop needs semicolon inside body","No"],
+["i++ increments i","Yes"],
+["for loop only counts up","No"],
+["Nested loops allowed","Yes"],
+["Loop ends when condition false","Yes"]
+]
+});
+
+/* DAY 7 */
+lessons.push({
+title:"Day 7 – while & do-while",
+learn:`<h3>while Loop</h3>
+<pre>while(condition){
+ statements;
+}</pre>
+
+<h3>do-while Loop</h3>
+<pre>do{
+ statements;
+}while(condition);</pre>
+
+<h3>Difference</h3>
+<ul>
+<li>while → checks condition first</li>
+<li>do-while → runs at least once</li>
+</ul>`,
+
+notes:`<ul>
+<li>do-while ends with semicolon</li>
+<li>Use while when condition-based looping</li>
+<li>Common in input validation</li>
+</ul>
+<ul>
+<li>while checks condition before execution</li>
+<li>do-while executes at least once</li>
+<li>do-while ends with semicolon</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_while_loop.php" target="_blank">C while Loop</a></li>
+</ul>`,
+
+code:`int i=1;
+do{
+ printf("%d ",i);
+ i++;
+}while(i<=5);`,
+
+quiz:[
+["while checks condition first","Yes"],
+["do-while runs at least once","Yes"],
+["do-while ends with semicolon","Yes"],
+["while always runs once","No"],
+["Loops reduce repetition","Yes"],
+["Infinite loop possible","Yes"],
+["break exits loop","Yes"],
+["continue skips iteration","Yes"],
+["while used for fixed count","No"],
+["do-while used for menus","Yes"]
+]
+});
+
+/* DAY 8 */
+lessons.push({
+title:"Day 8 – Number Logic Programs",
+learn:`<h3>Prime Number</h3>
+<p>Number divisible only by 1 and itself.</p>
+
+<h3>Palindrome</h3>
+<p>Number remains same when reversed.</p>
+
+<h3>Armstrong</h3>
+<p>Sum of digits³ equals number.</p>`,
+
+notes:`<ul>
+<li>Prime check runs till n/2 or sqrt(n)</li>
+<li>Palindrome uses reverse logic</li>
+<li>Armstrong uses digit power</li>
+</ul>
+<ul>
+<li>Prime numbers are divisible by 1 and itself</li>
+<li>Palindrome remains same when reversed</li>
+<li>Armstrong uses sum of digits power</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_math.php" target="_blank">C Math & Logic</a></li>
+</ul>`,
+
+code:`int n,temp,rev=0;
+temp=n;
+while(n>0){
+ rev=rev*10+n%10;
+ n/=10;
+}
+if(temp==rev) printf("Palindrome");`,
+
+quiz:[
+["Prime divisible by 1 & itself","Yes"],
+["1 is prime","No"],
+["Palindrome compares reverse","Yes"],
+["Armstrong uses power of digits","Yes"],
+["Loop needed for digit extraction","Yes"],
+["n%10 gives last digit","Yes"],
+["n/=10 removes last digit","Yes"],
+["Prime check uses loop","Yes"],
+["Palindrome works for strings","Yes"],
+["Logic programs build thinking","Yes"]
+]
+});
+lessons.push({
+title:"Day 9 – Functions",
+learn:`<h3>What is a Function?</h3>
+<ul>
+<li>A block of code that performs a task</li>
+<li>Improves code reusability</li>
+<li>Makes program modular</li>
+</ul>
+
+<h3>Function Syntax</h3>
+<pre>returnType functionName(parameters){
+  statements;
+  return value;
+}</pre>
+
+<h3>Types of Functions</h3>
+<ul>
+<li>With arguments, with return</li>
+<li>With arguments, no return</li>
+<li>No arguments, with return</li>
+<li>No arguments, no return</li>
+</ul>`,
+
+notes:`<ul>
+<li>Function must be declared before use</li>
+<li>Return type must match returned value</li>
+<li>main() is also a function</li>
+</ul>
+<ul>
+<li>Functions divide program into modules</li>
+<li>Improve readability and reuse</li>
+<li>main() is also a function</li>
+<li>Return type must match returned value</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_functions.php" target="_blank">C Functions</a></li>
+</ul>`,
+
+code:`int add(int a,int b){
+ return a+b;
+}
+
+int main(){
+ printf("%d",add(3,4));
+}`,
+
+quiz:[
+["Function avoids repetition","Yes"],
+["main is a function","Yes"],
+["Function must return value","No"],
+["Return type must match","Yes"],
+["Functions improve readability","Yes"],
+["Function name must be unique","Yes"],
+["Parameters optional","Yes"],
+["Function can call another function","Yes"],
+["Function runs automatically","No"],
+["Functions break large program","Yes"]
+]
+});
+/* DAY 10 */
+lessons.push({
+title:"Day 10 – Recursion",
+learn:`<h3>What is Recursion?</h3>
+<p>A function calling itself.</p>
+
+<h3>Rules of Recursion</h3>
+<ul>
+<li>Must have base condition</li>
+<li>Must move towards base case</li>
+</ul>
+
+<h3>Factorial Example</h3>
+<pre>int fact(int n){
+ if(n==0) return 1;
+ return n*fact(n-1);
+}</pre>
+
+<h3>How it Works</h3>
+<ul>
+<li>Uses call stack</li>
+<li>Each call stored in stack</li>
+</ul>`,
+
+notes:`<ul>
+<li>Missing base case causes infinite recursion</li>
+<li>Recursion uses more memory than loops</li>
+<li>Recursion simplifies logic</li>
+</ul>
+<ul>
+<li>Recursion is a function calling itself</li>
+<li>Base case prevents infinite recursion</li>
+<li>Uses stack memory</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_recursion.php" target="_blank">C Recursion</a></li>
+</ul>`,
+
+code:`int fact(int n){
+ if(n==0) return 1;
+ return n*fact(n-1);
+}`,
+
+quiz:[
+["Recursion calls itself","Yes"],
+["Base case mandatory","Yes"],
+["Recursion faster than loop","No"],
+["Uses stack memory","Yes"],
+["Infinite recursion possible","Yes"],
+["Every recursion has base case","Yes"],
+["Recursion reduces code","Yes"],
+["Recursion avoids loops","Sometimes"],
+["fact(0)=1","Yes"],
+["Recursion used everywhere","No"]
+]
+});
+/* DAY 11 */
+lessons.push({
+title:"Day 11 – Arrays",
+learn:`<h3>What is an Array?</h3>
+<ul>
+<li>Collection of same data type</li>
+<li>Stored in contiguous memory</li>
+<li>Index starts from 0</li>
+</ul>
+
+<h3>Declaration</h3>
+<pre>int a[5] = {1,2,3,4,5};</pre>
+
+<h3>Accessing Elements</h3>
+<pre>a[0], a[1], a[2]</pre>`,
+
+notes:`<ul>
+<li>Array size is fixed</li>
+<li>Index out of range causes error</li>
+<li>Array name is base address</li>
+</ul>
+<ul>
+<li>Arrays store multiple values of same type</li>
+<li>Index starts from 0</li>
+<li>Array size is fixed</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_arrays.php" target="_blank">C Arrays</a></li>
+</ul>`,
+
+code:`int a[5]={1,2,3,4,5};
+for(int i=0;i<5;i++)
+ printf("%d ",a[i]);`,
+
+quiz:[
+["Array stores same data type","Yes"],
+["Index starts from 1","No"],
+["Array size fixed","Yes"],
+["Array name stores base address","Yes"],
+["Array can store mixed types","No"],
+["Loop used to traverse array","Yes"],
+["Out of bound safe","No"],
+["Array stored contiguously","Yes"],
+["a[0] is first element","Yes"],
+["Array index can be negative","No"]
+]
+});
+/* DAY 12 */
+lessons.push({
+title:"Day 12 – Searching & Sorting",
+learn:`<h3>Searching</h3>
+<p>Finding an element in array.</p>
+
+<h3>Linear Search</h3>
+<pre>for(i=0;i<n;i++){
+ if(a[i]==key){
+  found=1;
+  break;
+ }
+}</pre>
+
+<h3>Sorting</h3>
+<p>Arranging elements in order.</p>
+
+<h3>Bubble Sort</h3>
+<pre>for(i=0;i<n-1;i++)
+ for(j=0;j<n-i-1;j++)
+  if(a[j]>a[j+1])
+   swap;</pre>`,
+
+notes:`<ul>
+<li>Linear search is simple but slow</li>
+<li>Bubble sort compares adjacent elements</li>
+<li>Sorting improves searching</li>
+</ul>
+<ul>
+<li>Searching finds element in array</li>
+<li>Sorting arranges elements in order</li>
+<li>Bubble sort compares adjacent elements</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_arrays_sort.php" target="_blank">C Sorting</a></li>
+</ul>`,
+
+code:`for(i=0;i<n-1;i++)
+ for(j=0;j<n-i-1;j++)
+  if(a[j]>a[j+1]){
+   temp=a[j];
+   a[j]=a[j+1];
+   a[j+1]=temp;
+  }`,
+
+quiz:[
+["Searching finds element","Yes"],
+["Linear search fastest","No"],
+["Bubble sort swaps adjacent","Yes"],
+["Sorting arranges data","Yes"],
+["Bubble sort time O(n^2)","Yes"],
+["Search before sort allowed","Yes"],
+["Binary search needs sorted array","Yes"],
+["Sorting reduces complexity","Sometimes"],
+["Bubble sort stable","Yes"],
+["Sorting mandatory","No"]
+]
+});
+/* DAY 13 */
+lessons.push({
+title:"Day 13 – Strings",
+learn:`<h3>What is a String?</h3>
+<ul>
+<li>A string is an array of characters</li>
+<li>Ends with null character \\0</li>
+<li>Stored in contiguous memory</li>
+</ul>
+
+<h3>Declaration</h3>
+<pre>char name[20];</pre>
+
+<h3>Input / Output</h3>
+<pre>scanf("%s",name);
+printf("%s",name);</pre>
+
+<h3>String Functions</h3>
+<ul>
+<li>strlen()</li>
+<li>strcpy()</li>
+<li>strcmp()</li>
+<li>strcat()</li>
+</ul>`,
+
+notes:`<ul>
+<li>Strings always end with \\0</li>
+<li>scanf stops at space</li>
+<li>Use gets/fgets carefully</li>
+</ul>
+<ul>
+<li>Strings are character arrays</li>
+<li>Ends with null character \\0</li>
+<li>String functions simplify operations</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_strings.php" target="_blank">C Strings</a></li>
+</ul>`,
+
+code:`char str[20];
+scanf("%s",str);
+printf("Length=%d",strlen(str));`,
+
+quiz:[
+["String is char array","Yes"],
+["String ends with \\0","Yes"],
+["strlen counts \\0","No"],
+["scanf reads full line","No"],
+["strcmp compares strings","Yes"],
+["Strings stored contiguously","Yes"],
+["char array stores string","Yes"],
+["Space allowed in scanf string","No"],
+["Strings mutable in C","Yes"],
+["String index starts at 0","Yes"]
+]
+});
+/* DAY 14 */
+lessons.push({
+title:"Day 14 – Pointers",
+learn:`<h3>What is a Pointer?</h3>
+<ul>
+<li>A variable that stores address of another variable</li>
+<li>Allows direct memory access</li>
+</ul>
+
+<h3>Declaration</h3>
+<pre>int a=10;
+int *p=&a;</pre>
+
+<h3>Dereferencing</h3>
+<pre>*p gives value of a</pre>
+
+<h3>Pointer Arithmetic</h3>
+<ul>
+<li>p+1 moves to next memory location</li>
+</ul>`,
+
+notes:`<ul>
+<li>* and & are different operators</li>
+<li>Pointer type decides memory jump</li>
+<li>Uninitialized pointer is dangerous</li>
+</ul>
+<ul>
+<li>Pointers store memory addresses</li>
+<li>* accesses value, & gets address</li>
+<li>Used heavily with arrays and functions</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_pointers.php" target="_blank">C Pointers</a></li>
+</ul>`,
+
+code:`int a=10;
+int *p=&a;
+printf("%d",*p);`,
+
+quiz:[
+["Pointer stores address","Yes"],
+["*p gives value","Yes"],
+["& gives address","Yes"],
+["Pointer stores value directly","No"],
+["Pointer arithmetic allowed","Yes"],
+["Pointer needs datatype","Yes"],
+["Null pointer is safe","Yes"],
+["Uninitialized pointer safe","No"],
+["Pointer used in arrays","Yes"],
+["Pointer improves efficiency","Yes"]
+]
+});
+/* DAY 15 */
+lessons.push({
+title:"Day 15 – Structures & Unions",
+learn:`<h3>Structure</h3>
+<ul>
+<li>User-defined data type</li>
+<li>Groups different data types</li>
+</ul>
+
+<h3>Structure Syntax</h3>
+<pre>struct Student{
+ int id;
+ char name[20];
+};</pre>
+
+<h3>Union</h3>
+<ul>
+<li>All members share same memory</li>
+<li>Saves memory</li>
+</ul>`,
+
+notes:`<ul>
+<li>Structure allocates separate memory</li>
+<li>Union shares memory</li>
+<li>Use structure for records</li>
+</ul>
+<ul>
+<li>Structures group different data types</li>
+<li>Unions share memory</li>
+<li>Structures are used for records</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_structs.php" target="_blank">C Structures</a></li>
+</ul>`,
+
+code:`struct Student{
+ int id;
+ char name[20];
+};
+struct Student s1;`,
+
+quiz:[
+["Structure groups different types","Yes"],
+["Union shares memory","Yes"],
+["Structure uses single memory","No"],
+["Union saves memory","Yes"],
+["Structure members independent","Yes"],
+["Union stores all values at once","No"],
+["Structure used for records","Yes"],
+["Union faster than structure","Sometimes"],
+["Dot operator accesses members","Yes"],
+["Structure size is sum of members","Yes"]
+]
+});
+/* DAY 16 */
+lessons.push({
+title:"Day 16 – File Handling",
+learn:`<h3>What is File Handling?</h3>
+<ul>
+<li>Storing data permanently</li>
+<li>Data remains after program ends</li>
+</ul>
+
+<h3>File Pointer</h3>
+<pre>FILE *fp;</pre>
+
+<h3>Opening a File</h3>
+<pre>fp = fopen("data.txt","w");</pre>
+
+<h3>Writing & Reading</h3>
+<pre>fprintf(fp,"Hello");
+fscanf(fp,"%s",str);</pre>
+
+<h3>Closing File</h3>
+<pre>fclose(fp);</pre>`,
+
+notes:`<ul>
+<li>Always close file after use</li>
+<li>Check if file opened successfully</li>
+<li>Files stored on disk</li>
+</ul>
+<ul>
+<li>Files store data permanently</li>
+<li>FILE pointer is mandatory</li>
+<li>Always close file after use</li>
+</ul>
+
+<p><b>W3Schools Reference:</b></p>
+<ul>
+<li><a href="https://www.w3schools.com/c/c_files.php" target="_blank">C File Handling</a></li>
+</ul>`,
+
+code:`FILE *fp;
+fp=fopen("test.txt","w");
+fprintf(fp,"C Programming");
+fclose(fp);`,
+
+quiz:[
+["File stores data permanently","Yes"],
+["FILE is a pointer","Yes"],
+["fopen opens file","Yes"],
+["fclose optional","No"],
+["Files stored in RAM","No"],
+["fprintf writes to file","Yes"],
+["fscanf reads from file","Yes"],
+["File handling needs stdio.h","Yes"],
+["File pointer mandatory","Yes"],
+["File handling useful","Yes"]
+]
+});
+
+function render(){
+  const d=document.getElementById("days");
+  d.innerHTML="";
+  lessons.forEach((l,i)=>{
+    const c=document.createElement("div");
+    c.className="card"+(completed[i]?" completed":"");
+    c.innerHTML=`<h3>${l.title}</h3><p>Click to open</p>`;
+    c.onclick=()=>openLesson(i);
+    d.appendChild(c);
+  });
+  updateProgress();
+}
+
+function openLesson(i){
+  currentDay=i;
+  const l=lessons[i];
+  lessonTitle.innerText=l.title;
+  learn.innerHTML=l.learn;
+  notes.innerHTML=l.notes;
+  code.innerHTML=`<textarea>${l.code}</textarea>`;
+  quiz.innerHTML=l.quiz.map(q=>`
+    <div class="quiz-box">
+      <p>${q[0]}</p>
+      <button onclick="this.nextElementSibling.innerText='${q[1]}'">Show Answer</button>
+      <div class="answer"></div>
+    </div>`).join("");
+  showTab('learn');
+  modal.style.display="flex";
+}
+
+function markCompleted(){
+  completed[currentDay]=true;
+  localStorage.setItem("completedDays",JSON.stringify(completed));
+  closeModal();render();
+}
+
+function updateProgress(){
+  const total=lessons.length;
+  const done=Object.keys(completed).length;
+  const percent=Math.round((done/total)*100);
+  progressText.innerText=`Progress: ${percent}% (${done}/${total})`;
+  progressFill.style.width=percent+"%";
+}
+
+function showTab(id){
+  document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).style.display="block";
+  event.target.classList.add("active");
+}
+
+function closeModal(){modal.style.display="none";}
+function toggleDark(){document.body.classList.toggle("dark");}
+
+render();
+</script>
+</body>
+</html>
